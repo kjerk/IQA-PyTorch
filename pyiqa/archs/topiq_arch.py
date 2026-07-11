@@ -21,15 +21,13 @@ from .constants import (
     OPENAI_CLIP_STD,
 )
 from pyiqa.utils.registry import ARCH_REGISTRY
-from pyiqa.utils.download_util import DEFAULT_CACHE_DIR
+
 from pyiqa.archs.arch_util import dist_to_mos, load_pretrained_network, uniform_crop
 
 import copy
 from .clip_model import load
 from .topiq_swin import create_swin
 
-from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-import warnings
 from pyiqa.archs.arch_util import get_url_from_name
 
 
@@ -232,7 +230,6 @@ class CFANet(nn.Module):
             prediction.
         block_pool (str): Feature block pooling mode.
         test_img_size (tuple[int, int] | None): Optional test-time resize.
-        align_crop_face (bool): Whether to run face alignment for GFIQA models.
         default_mean (tuple[float, float, float]): Input normalization mean.
         default_std (tuple[float, float, float]): Input normalization std.
 
@@ -260,7 +257,6 @@ class CFANet(nn.Module):
         out_act=False,
         block_pool='weighted_avg',
         test_img_size=None,
-        align_crop_face=True,
         default_mean=IMAGENET_DEFAULT_MEAN,
         default_std=IMAGENET_DEFAULT_STD,
     ):
@@ -277,8 +273,6 @@ class CFANet(nn.Module):
         self.num_class = num_class
         self.block_pool = block_pool
         self.test_img_size = test_img_size
-
-        self.align_crop_face = align_crop_face
 
         # =============================================================
         # define semantic backbone network
@@ -424,30 +418,6 @@ class CFANet(nn.Module):
         self.eps = 1e-8
         self.crops = num_crop
 
-        if 'gfiqa' in model_name:
-            # facexlib still initializes RetinaFace via deprecated torchvision
-            # arguments on some versions; suppress only those known warnings.
-            with warnings.catch_warnings():
-                warnings.filterwarnings(
-                    'ignore',
-                    message="The parameter 'pretrained' is deprecated since 0\\.13 and may be removed in the future, please use 'weights' instead\\.",
-                    category=UserWarning,
-                )
-                warnings.filterwarnings(
-                    'ignore',
-                    message="Arguments other than a weight enum or `None` for 'weights' are deprecated since 0\\.13 and may be removed in the future\\.",
-                    category=UserWarning,
-                )
-                self.face_helper = FaceRestoreHelper(
-                    1,
-                    face_size=512,
-                    crop_ratio=(1, 1),
-                    det_model='retinaface_resnet50',
-                    save_ext='png',
-                    use_parse=True,
-                    model_rootpath=DEFAULT_CACHE_DIR,
-                )
-
     def _init_linear(self, m):
         for module in m.modules():
             if isinstance(module, nn.Linear):
@@ -574,36 +544,6 @@ class CFANet(nn.Module):
 
         return out_score
 
-    def preprocess_face(self, x):
-        warnings.warn(
-            'The faces will be aligned, cropped and resized to 512x512 with facexlib. Currently, this metric does not support batch size > 1 and gradient backpropagation.',
-            UserWarning,
-        )
-        # warning message
-        device = x.device
-        assert x.shape[0] == 1, f'Only support batch size 1, but got {x.shape[0]}'
-        self.face_helper.clean_all()
-        self.face_helper.input_img = x[0].permute(1, 2, 0).cpu().numpy() * 255
-        self.face_helper.input_img = self.face_helper.input_img[..., ::-1]
-        if (
-            self.face_helper.get_face_landmarks_5(
-                only_center_face=True, eye_dist_threshold=5
-            )
-            > 0
-        ):
-            self.face_helper.align_warp_face()
-            x = self.face_helper.cropped_faces[0]
-            x = (
-                torch.from_numpy(x[..., ::-1].copy())
-                .permute(2, 0, 1)
-                .unsqueeze(0)
-                .float()
-                / 255.0
-            )
-            return x.to(device)
-        else:
-            assert False, 'No face detected in the input image.'
-
     def forward(self, x, y=None, return_mos=True, return_dist=False):
         """Compute quality prediction.
 
@@ -625,10 +565,6 @@ class CFANet(nn.Module):
             assert y is not None, 'Please input y when use reference is True.'
         else:
             y = None
-
-        if 'gfiqa' in self.model_name:
-            if self.align_crop_face:
-                x = self.preprocess_face(x)
 
         if self.crops > 1 and not self.training:
             bsz = x.shape[0]

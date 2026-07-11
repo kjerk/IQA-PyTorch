@@ -3,7 +3,6 @@ addict
 datasets
 bitsandbytes; sys_platform != 'darwin'
 einops
-facexlib
 future
 numpy
 openai-clip

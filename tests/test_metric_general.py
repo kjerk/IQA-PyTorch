@@ -221,7 +221,6 @@ def test_forward(metric_name, device):
 
     if 'face' in metric_name:
         size = (1, 3, 224, 224)
-        kwargs['align_crop_face'] = False
 
     x = torch.rand(*size).to(device)
     y = torch.rand(*size).to(device)
