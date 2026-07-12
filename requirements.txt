@@ -6,6 +6,7 @@ einops
 ftfy
 future
 numpy
+packaging
 regex
 opencv-python-headless
 pandas
