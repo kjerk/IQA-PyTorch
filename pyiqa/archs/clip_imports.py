@@ -25,6 +25,6 @@ def _load(name, device='cpu', jit=False, download_root=None):
     return model, None
 
 
-clip = SimpleNamespace(tokenize=tokenize, load=_load)
+clip = SimpleNamespace(tokenize=tokenize, load=_load, SimpleTokenizer=SimpleTokenizer)
 
 __all__ = ['clip', 'SimpleTokenizer']
