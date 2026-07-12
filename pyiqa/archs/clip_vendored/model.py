@@ -27,6 +27,14 @@ _MODELS = {
 }
 
 
+def _sha256(path: str):
+    sha256 = hashlib.sha256()
+    with open(path, 'rb') as downloaded_file:
+        for chunk in iter(lambda: downloaded_file.read(1024 * 1024), b''):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
 def _download(url: str, root: str):
     os.makedirs(root, exist_ok=True)
     filename = os.path.basename(url)
@@ -38,10 +46,7 @@ def _download(url: str, root: str):
         raise RuntimeError(f'{download_target} exists and is not a regular file')
 
     if os.path.isfile(download_target):
-        if (
-            hashlib.sha256(open(download_target, 'rb').read()).hexdigest()
-            == expected_sha256
-        ):
+        if _sha256(download_target) == expected_sha256:
             return download_target
         else:
             warnings.warn(
@@ -64,8 +69,7 @@ def _download(url: str, root: str):
                 output.write(buffer)
                 loop.update(len(buffer))
 
-    with open(download_target, 'rb') as downloaded_file:
-        actual_sha256 = hashlib.sha256(downloaded_file.read()).hexdigest()
+    actual_sha256 = _sha256(download_target)
     if actual_sha256 != expected_sha256:
         raise RuntimeError(
             f'Model download checksum does not match for {download_target}: '
