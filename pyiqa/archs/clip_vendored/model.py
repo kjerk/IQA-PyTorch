@@ -69,7 +69,7 @@ def _download(url: str, root: str):
         != expected_sha256
     ):
         raise RuntimeError(
-            'Model has been downloaded but the SHA256 checksum does not match'
+            f'Model download checksum does not match for {download_target}'
         )
 
     return download_target
