@@ -64,12 +64,11 @@ def _download(url: str, root: str):
                 output.write(buffer)
                 loop.update(len(buffer))
 
-    if (
-        hashlib.sha256(open(download_target, 'rb').read()).hexdigest()
-        != expected_sha256
-    ):
+    actual_sha256 = hashlib.sha256(open(download_target, 'rb').read()).hexdigest()
+    if actual_sha256 != expected_sha256:
         raise RuntimeError(
-            f'Model download checksum does not match for {download_target}'
+            f'Model download checksum does not match for {download_target}: '
+            f'expected {expected_sha256}, got {actual_sha256}'
         )
 
     return download_target
