@@ -15,7 +15,7 @@ Re-implemented by: Chaofeng Chen (https://github.com/chaofengc)
 import torch
 import torch.nn as nn
 
-from .clip_imports import clip
+from . import clip_vendored as clip
 from pyiqa.utils.registry import ARCH_REGISTRY
 from .arch_util import clip_preprocess_tensor
 

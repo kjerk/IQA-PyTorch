@@ -22,8 +22,8 @@ import torchvision
 
 from pyiqa.utils.registry import ARCH_REGISTRY
 from pyiqa.archs.constants import OPENAI_CLIP_MEAN, OPENAI_CLIP_STD
-from pyiqa.archs.clip_model import load
-from pyiqa.archs.clip_imports import clip
+from pyiqa.archs import clip_vendored as clip
+from pyiqa.archs.clip_vendored.model import load
 
 
 class CustomCLIP(nn.Module):
