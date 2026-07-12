@@ -25,7 +25,7 @@ from pyiqa.utils.registry import ARCH_REGISTRY
 from pyiqa.archs.arch_util import dist_to_mos, load_pretrained_network, uniform_crop
 
 import copy
-from .clip_model import load
+from .clip_vendored.model import load
 from .topiq_swin import create_swin
 
 from pyiqa.archs.arch_util import get_url_from_name

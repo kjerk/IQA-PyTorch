@@ -23,7 +23,7 @@ from pyiqa.archs.arch_util import (
     load_file_from_url,
 )
 from pyiqa.archs.constants import OPENAI_CLIP_MEAN, OPENAI_CLIP_STD
-from pyiqa.archs.clip_model import load
+from pyiqa.archs.clip_vendored.model import load
 
 default_model_urls = {
     'qualiclip': get_url_from_name('QualiCLIP.pth'),

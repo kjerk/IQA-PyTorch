@@ -17,7 +17,7 @@ from .clip_imports import clip
 
 from pyiqa.utils.registry import ARCH_REGISTRY
 from pyiqa.archs.arch_util import load_file_from_url, load_pretrained_network
-from .clip_model import load
+from .clip_vendored.model import load
 from pyiqa.archs.arch_util import get_url_from_name
 
 default_model_urls = {
