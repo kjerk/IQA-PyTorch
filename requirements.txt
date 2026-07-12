@@ -3,9 +3,10 @@ addict
 datasets
 bitsandbytes; sys_platform != 'darwin'
 einops
+ftfy
 future
 numpy
-openai-clip
+regex
 opencv-python-headless
 pandas
 Pillow
